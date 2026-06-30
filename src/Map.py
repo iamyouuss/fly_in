@@ -26,6 +26,9 @@ class Connection:
         self.hub_b: Zone = hub_b
         self.max_link_capacity: int = max_link_capacity
 
+    def __repr__(self) -> str:
+        return f"{self.hub_a}-{self.hub_b}"
+
 
 class Map:
     def __init__(self, number_of_drones: int, start: Zone,
@@ -49,6 +52,3 @@ class Map:
             connection_list[c.hub_a.name].append(c)
             connection_list[c.hub_b.name].append(c)
         return connection_list
-
-    def start_simulation(self):
-        ...

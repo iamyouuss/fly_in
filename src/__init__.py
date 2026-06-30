@@ -1,6 +1,8 @@
-from .parser import Parser
-
+from .Parser import Parser
+from .Simulation import Simulation
 
 __all__ = [
-    "Parser"
+    "Parser",
+    "Simulation",
+    ""
 ]
