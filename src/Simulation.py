@@ -1,5 +1,5 @@
-from Drone import Drone
-from Map import Map
+from .Drone import Drone
+from .Map import Map
 
 
 class Simulation:
@@ -14,3 +14,6 @@ class Simulation:
 
     def start_simulation(self) -> None:
         self.create_drones()
+        self.map_zone.display_info()
+        for drone in self.drones:
+            print(drone)

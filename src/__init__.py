@@ -3,6 +3,5 @@ from .Simulation import Simulation
 
 __all__ = [
     "Parser",
-    "Simulation",
-    ""
+    "Simulation"
 ]

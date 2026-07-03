@@ -1,4 +1,4 @@
-from Map import Connection, Zone
+from .Map import Connection, Zone
 
 
 class Drone:
