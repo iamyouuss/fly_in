@@ -17,3 +17,6 @@ class Simulation:
         self.map_zone.display_info()
         for drone in self.drones:
             print(drone)
+
+    def compute_route(self):
+        ...

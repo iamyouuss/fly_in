@@ -53,6 +53,20 @@ class Map:
             connection_list[c.hub_b.name].append(c)
         return connection_list
 
+    def get_neighbors(self, zone: Zone):
+        """
+        Return the list of neighboring zones for the given zone.
+        
+        Args:
+            zone (Zone): The zone for which to find neighbors.
+            
+        Returns:
+            list[Zone]: A list of neighboring zones.
+        """
+        return [c.hub_a if c.hub_a is not zone
+                else c.hub_b for c in self.connection_list[zone.name]]
+
+
     def display_info(self) -> None:
         """Print a summary of the parsed map.
 
