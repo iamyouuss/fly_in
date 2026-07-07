@@ -4,6 +4,7 @@ from .Map import Connection, Zone
 class Drone:
     def __init__(self, drone_id: int, current_zone: Zone) -> None:
         self.drone_id: int = drone_id
+        self.path: list[Zone] = []
         self.current_zone: Zone | None = current_zone
         self.current_connection: Connection | None = None
         self.turns_in_transit: int = 0

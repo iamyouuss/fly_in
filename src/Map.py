@@ -1,5 +1,5 @@
 from enum import Enum
-
+from .Drone import Drone
 
 class Zone_Type(Enum):
     NORMAL = "normal"
@@ -17,6 +17,8 @@ class Zone:
         self.max_drones: int = max_drones
         self.zone_type: Zone_Type = Zone_Type(zone_type)
         self.color: str | None = color
+        self.movement_cost: int = 2 if zone_type == "restricted" else 1
+        self.current_drones: int = 0
 
 
 class Connection:
@@ -25,9 +27,10 @@ class Connection:
         self.hub_a: Zone = hub_a
         self.hub_b: Zone = hub_b
         self.max_link_capacity: int = max_link_capacity
+        self.current_drones: list[Drone] = []
 
     def __repr__(self) -> str:
-        return f"{self.hub_a}-{self.hub_b}"
+        return f"{self.hub_a}-{'-'.join(d for d in self.current_drones)}-{self.hub_b}"
 
 
 class Map:
