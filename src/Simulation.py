@@ -1,6 +1,4 @@
-from .Drone import Drone
-from .Map import Map, Zone, Zone_Type
-
+from .Map import Connection, Map, Zone, Zone_Type, Drone
 
 class Simulation:
     """Represents the simulation environment for drone navigation."""
@@ -8,24 +6,70 @@ class Simulation:
         self.map_zone: Map = map_zone
         self.drones: list[Drone] = []
         self.traffic_load: dict[Zone, int] = {}
-        self.turns: int = 0
-
+        self.turn_counter: int = 0
 
     def create_drones(self) -> None:
         """Creates the drones for the simulation."""
         for i in range(1, self.map_zone.nb_of_drones + 1):
             drone = Drone(i, self.map_zone.start)
             self.drones.append(drone)
+            self.map_zone.start.current_drones.append(drone)
 
-    def play_turn(self):
-        ...
+    def play_turn(self) -> None:
+
+        for drone in self.drones:
+            if drone.is_delivered:
+                continue
+            if drone.turns_in_transit > 0:
+                drone.turns_in_transit -= 1
+            if drone.current_connection and drone.turns_in_transit == 0:
+                destination = drone.path[0]
+
+                drone.current_connection.current_drones.remove(drone)
+                drone.current_connection = None
+                
+                drone.current_zone = destination
+                # destination.current_drones.append(drone)
+                drone.path.remove(destination)
+                if destination == self.map_zone.end:
+                    drone.is_delivered = True
+                continue
+            if not drone.current_connection and drone.path:
+                destination = drone.path[0]
+                connection = self.map_zone.get_connection(drone.current_zone, destination)
+
+                if len(destination.current_drones) < destination.max_drones:
+
+                    if destination.zone_type == Zone_Type.RESTRICTED:
+                        # if len(connection.current_drones) < connection.max_link_capacity:
+                        drone.current_zone.current_drones.remove(drone)
+                        drone.current_zone = None
+                        
+                        drone.current_connection = connection
+                        connection.current_drones.append(drone)                                
+                        drone.turns_in_transit = 1
+
+                        destination.current_drones.append(drone)
+
+                    else:
+                        # if len(connection.current_drones) < connection.max_link_capacity:
+                        drone.current_zone.current_drones.remove(drone)
+
+                        drone.current_zone = destination
+                        destination.current_drones.append(drone)
+
+                        drone.path.remove(destination)
+                        if destination == self.map_zone.end:
+                            drone.is_delivered = True
+
 
     def get_final_path(self, path: dict[Zone, Zone]) -> list[Zone]:
         """
         Reconstructs the final path from the start to the end zone.
 
         Args:
-            path (dict[Zone, Zone]): A dictionary mapping each zone to its predecessor in the path.
+            path (dict[Zone, Zone]):
+            A dictionary mapping each zone to its predecessor in the path.
 
         Returns:
             list[Zone]: The final path from the start to the end zone.
@@ -39,11 +83,13 @@ class Simulation:
             current = path[current]
             final_path.append(current)
         final_path.reverse()
+        final_path.remove(self.map_zone.start)
         return final_path
 
     def build_path(self) -> list[Zone]:
         """
-        Builds the optimal path for a drone to navigate from the start to the end zone.
+        Builds the optimal path for a drone to navigate
+        from the start to the end zone.
 
         Returns:
             list[Zone]: The optimal path from the start to the end zone.
@@ -53,10 +99,14 @@ class Simulation:
         for hub in self.map_zone.hubs.values():
             distances[hub] = float('inf')
         path: dict[Zone, Zone] = {}
-        to_visit = [self.map_zone.start, self.map_zone.end] + list(self.map_zone.hubs.values())
+        to_visit = [self.map_zone.start,
+                    self.map_zone.end] + list(self.map_zone.hubs.values())
 
         while to_visit:
-            current = min(to_visit, key=lambda z: (distances[z], 0 if z.zone_type == Zone_Type.PRIORITY else 1))
+            current = min(
+                to_visit, key=lambda z: (distances[z],
+                                         0 if z.zone_type == Zone_Type.PRIORITY
+                                         else 1))
             to_visit.remove(current)
             neighbors = self.map_zone.get_neighbors(current)
             for neighbor in neighbors:
@@ -70,7 +120,7 @@ class Simulation:
                     distances[neighbor] = cost
                     path[neighbor] = current
         return self.get_final_path(path)
-    
+
     def plan_all_drone_paths(self):
         """Plans the paths for all drones in the simulation."""
         for hub in self.map_zone.hubs.values():
@@ -86,8 +136,17 @@ class Simulation:
         """Starts the simulation."""
         self.create_drones()
         self.plan_all_drone_paths()
-        while all(not drone.is_delivered for drone in self.drones):
+        """for drone in self.drones:
+            p = [zone.name for zone in drone.path]
+            print(p) """
+        while not all(drone.is_delivered for drone in self.drones) and self.turn_counter < 100:
+            self.turn_counter += 1
             self.play_turn()
-        """ self.map_zone.display_info()
-        for drone in self.drones:
-            print(drone) """
+            turn_output = [drone.format_output() for drone in self.drones if drone.format_output()]
+            if turn_output:
+                print(f"Turn {self.turn_counter}:")
+                for output in turn_output:
+                    print(f"  {output}")
+            
+        print(f"Simulation done in: {self.turn_counter} turn(s)")
+

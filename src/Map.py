@@ -1,5 +1,5 @@
 from enum import Enum
-from .Drone import Drone
+
 
 class Zone_Type(Enum):
     NORMAL = "normal"
@@ -18,8 +18,27 @@ class Zone:
         self.zone_type: Zone_Type = Zone_Type(zone_type)
         self.color: str | None = color
         self.movement_cost: int = 2 if zone_type == "restricted" else 1
-        self.current_drones: int = 0
+        self.current_drones: list[Drone] = []
 
+
+class Drone:
+    def __init__(self, drone_id: int, current_zone: Zone) -> None:
+        self.drone_id: int = drone_id
+        self.path: list[Zone] = []
+        self.current_zone: Zone | None = current_zone
+        self.current_connection: Connection | None = None
+        self.turns_in_transit: int = 0
+        self.is_delivered: bool = False
+
+    def __repr__(self) -> str:
+        return f"D{self.drone_id}"
+
+    def format_output(self) -> str:
+        if self.current_connection is not None:
+            return f"{self.current_connection.hub_a.name}-{self}-{self.current_connection.hub_b.name}"
+        elif self.current_zone is not None:
+            return f"{self}-{self.current_zone.name}"
+        return ""
 
 class Connection:
     def __init__(self, hub_a: Zone, hub_b: Zone, max_link_capacity: int = 1
@@ -30,7 +49,9 @@ class Connection:
         self.current_drones: list[Drone] = []
 
     def __repr__(self) -> str:
-        return f"{self.hub_a}-{'-'.join(d for d in self.current_drones)}-{self.hub_b}"
+        return (f"{self.hub_a}-"
+                f"{'-'.join(d for d in self.current_drones)}-{self.hub_b}"
+                )
 
 
 class Map:
@@ -59,16 +80,31 @@ class Map:
     def get_neighbors(self, zone: Zone):
         """
         Return the list of neighboring zones for the given zone.
-        
+
         Args:
             zone (Zone): The zone for which to find neighbors.
-            
+
         Returns:
             list[Zone]: A list of neighboring zones.
         """
         return [c.hub_a if c.hub_a is not zone
                 else c.hub_b for c in self.connection_list[zone.name]]
 
+    def get_connection(self, zone_a: Zone, zone_b: Zone):
+        """
+        Return the connection between two zones.
+
+        Args:
+            zone_a (Zone): The first zone.
+            zone_b (Zone): The second zone.
+
+        Returns:
+            Connection | None: The connection between the two zones, or None if no such connection exists.
+        """
+        for c in self.connection_list[zone_a.name]:
+            if c.hub_a is zone_b or c.hub_b is zone_b:
+                return c
+        return None
 
     def display_info(self) -> None:
         """Print a summary of the parsed map.
@@ -84,13 +120,13 @@ class Map:
         print(f"Hubs ({len(self.hubs)}):")
         for hub in self.hubs.values():
             print(f"  - {hub.name} {hub.coordinates} "
-                f"type={hub.zone_type.value} "
-                f"max_drones={hub.max_drones} "
-                f"color={hub.color}")
+                  f"type={hub.zone_type.value} "
+                  f"max_drones={hub.max_drones} "
+                  f"color={hub.color}")
 
         print(f"Connections ({len(self.connection_list)}):")
         for connection in self.connection_list:
             print(f"{connection}:")
             for c in self.connection_list[connection]:
                 print(f" - {c.hub_a.name} to {c.hub_b.name} "
-                    f"max_link_capacity={c.max_link_capacity}")
+                      f"max_link_capacity={c.max_link_capacity}")

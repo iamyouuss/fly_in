@@ -19,13 +19,15 @@ class Parser:
             key, value = line.split("=")
             if key == "max_drones":
                 if int(value) < 1:
-                    raise ValueError(f"[Error] Invalid value for 'max_drones': {value}")
+                    raise ValueError(
+                        f"[Error] Invalid value for 'max_drones': {value}")
                 metadata["max_drones"] = int(value)
             elif key == "zone":
                 try:
                     Zone_Type(value)
                 except ValueError:
-                    raise ValueError(f"[Error] Invalid value for 'zone': {value}")
+                    raise ValueError(
+                        f"[Error] Invalid value for 'zone': {value}")
                 metadata["zone_type"] = value
             elif key == "color":
                 metadata["color"] = value
@@ -43,11 +45,11 @@ class Parser:
         if "-" in name:
             raise ValueError(f"[Error] Invalid format for zone name '{name}': "
                              "spaces and dashes not allowed")
-        
+
         existing_zone = self._get_zone_by_name(name)
         if existing_zone is not None:
             raise ValueError(f"[Error] Zone name {name} already exists")
-        
+
         x = int(data[1])
         y = int(data[2])
 
@@ -88,14 +90,17 @@ class Parser:
         hub_a = self._get_zone_by_name(a)
         hub_b = self._get_zone_by_name(b)
         if hub_a is None or hub_b is None:
-            raise ValueError(f"[Error] Zone '{a if hub_a is None else b}' not found")
+            raise ValueError(
+                f"[Error] Zone '{a if hub_a is None else b}' not found")
         if len(parts) > 1:
             metadata = parts[1]
             metadata = metadata.replace("]", "")
             key, value = metadata.split("=")
             if key == "max_link_capacity":
                 if int(value) < 1:
-                    raise ValueError(f"[Error] Invalid value for 'max_link_capacity': {value}")
+                    raise ValueError(
+                        f"[Error] Invalid value for 'max_link_capacity': "
+                        f"{value}")
                 max_link_capacity = int(value)
                 self.connections.append(
                     Connection(hub_a, hub_b, max_link_capacity))
@@ -116,7 +121,9 @@ class Parser:
                     prefix, content = [c.strip() for c in cutted_line]
                     if prefix == "nb_drones":
                         if int(content) < 1:
-                            raise ValueError(f"[Error] Invalid value for 'nb_drones': {content}")
+                            raise ValueError(
+                                f"[Error] Invalid value for 'nb_drones': "
+                                f"{content}")
                         self.nb_drones = int(content)
                     elif prefix in ("start_hub", "end_hub", "hub"):
                         self.init_hub(prefix, content)
@@ -144,10 +151,9 @@ class Parser:
                 raise ValueError(
                     "[Error] Failed to create Map: no connection between hubs")
             map_zone = Map(self.nb_drones, self.start, self.hubs, self.end,
-                       self.connections)
+                           self.connections)
             print("[Success] Map created succesfully !")
         except ValueError as e:
             print(f"[Error] Failed to create map: {e}")
             sys.exit(1)
         return map_zone
-            
