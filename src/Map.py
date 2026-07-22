@@ -13,7 +13,8 @@ class Zone:
                  max_drones: int = 1, zone_type: str = "normal",
                  color: str | None = None) -> None:
         self.name: str = name
-        self.coordinates: tuple[int, int] = (x, y)
+        self.x: int = x
+        self.y: int = y
         self.max_drones: int = max_drones
         self.zone_type: Zone_Type = Zone_Type(zone_type)
         self.color: str | None = color
@@ -105,6 +106,21 @@ class Map:
             if c.hub_a is zone_b or c.hub_b is zone_b:
                 return c
         return None
+
+    def get_map_size(self):
+        """
+        Return the size of the map.
+
+        Returns:
+            dict[str, int]: A dictionary containing the minimum and maximum x and y coordinates.
+        """
+        zones = list(self.hubs.values()) + [self.start, self.end]
+        return {
+            "min_x": min(zone.x for zone in zones),
+            "min_y": min(zone.y for zone in zones),
+            "max_x": max(zone.x for zone in zones),
+            "max_y": max(zone.y for zone in zones)
+        }
 
     def display_info(self) -> None:
         """Print a summary of the parsed map.

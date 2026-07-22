@@ -1,5 +1,5 @@
 import sys
-from src import Parser, Simulation
+from src import Parser, Simulation, Visualizer
 
 
 def main() -> None:
@@ -11,7 +11,8 @@ def main() -> None:
     parser.parse(sys.argv[1])
     map_zone = parser.create_map()
     simulation = Simulation(map_zone)
-    simulation.start_simulation()
+    visualizer = Visualizer(simulation)
+    visualizer.start_simulation()
 
 
 if __name__ == "__main__":
