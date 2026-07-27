@@ -1,4 +1,6 @@
 import sys
+
+import arcade
 from src import Parser, Simulation, Visualizer
 
 
@@ -11,8 +13,8 @@ def main() -> None:
     parser.parse(sys.argv[1])
     map_zone = parser.create_map()
     simulation = Simulation(map_zone)
-    visualizer = Visualizer(simulation)
-    visualizer.start_simulation()
+    _ = Visualizer(simulation)
+    arcade.run()
 
 
 if __name__ == "__main__":

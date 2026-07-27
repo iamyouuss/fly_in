@@ -1,5 +1,6 @@
 from .Map import Map, Zone, Zone_Type, Drone
 
+
 class Simulation:
     """Represents the simulation environment for drone navigation."""
     def __init__(self, map: Map) -> None:
@@ -27,7 +28,7 @@ class Simulation:
 
                 drone.current_connection.current_drones.remove(drone)
                 drone.current_connection = None
-                
+
                 drone.current_zone = destination
                 # destination.current_drones.append(drone)
                 drone.path.remove(destination)
@@ -36,23 +37,22 @@ class Simulation:
                 continue
             if not drone.current_connection and drone.path:
                 destination = drone.path[0]
-                connection = self.map.get_connection(drone.current_zone, destination)
+                connection = self.map.get_connection(
+                    drone.current_zone, destination)
 
                 if len(destination.current_drones) < destination.max_drones:
 
                     if destination.zone_type == Zone_Type.RESTRICTED:
-                        # if len(connection.current_drones) < connection.max_link_capacity:
                         drone.current_zone.current_drones.remove(drone)
                         drone.current_zone = None
-                        
+
                         drone.current_connection = connection
-                        connection.current_drones.append(drone)                                
+                        connection.current_drones.append(drone)
                         drone.turns_in_transit = 1
 
                         destination.current_drones.append(drone)
 
                     else:
-                        # if len(connection.current_drones) < connection.max_link_capacity:
                         drone.current_zone.current_drones.remove(drone)
 
                         drone.current_zone = destination
@@ -61,7 +61,6 @@ class Simulation:
                         drone.path.remove(destination)
                         if destination == self.map.end:
                             drone.is_delivered = True
-
 
     def get_final_path(self, path: dict[Zone, Zone]) -> list[Zone]:
         """
@@ -131,5 +130,3 @@ class Simulation:
             for zone in drone.path:
                 if zone != self.map.start and zone != self.map.end:
                     self.traffic_load[zone] += 1
-
-

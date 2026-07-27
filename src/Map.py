@@ -36,10 +36,12 @@ class Drone:
 
     def format_output(self) -> str:
         if self.current_connection is not None:
-            return f"{self.current_connection.hub_a.name}-{self}-{self.current_connection.hub_b.name}"
+            return (f"{self.current_connection.hub_a.name}-{self}-"
+                    f"{self.current_connection.hub_b.name}")
         elif self.current_zone is not None:
             return f"{self}-{self.current_zone.name}"
         return ""
+
 
 class Connection:
     def __init__(self, hub_a: Zone, hub_b: Zone, max_link_capacity: int = 1
@@ -63,6 +65,7 @@ class Map:
         self.start: Zone = start
         self.hubs: dict[str, Zone] = hubs
         self.end: Zone = end
+        self.zones: list[Zone] = [start, end] + list(hubs.values())
         self.connection_list: dict[
             str, list[Connection]] = self._build_connections(connections)
 
@@ -78,7 +81,7 @@ class Map:
             connection_list[c.hub_b.name].append(c)
         return connection_list
 
-    def get_neighbors(self, zone: Zone):
+    def get_neighbors(self, zone: Zone) -> list[Zone]:
         """
         Return the list of neighboring zones for the given zone.
 
@@ -91,7 +94,7 @@ class Map:
         return [c.hub_a if c.hub_a is not zone
                 else c.hub_b for c in self.connection_list[zone.name]]
 
-    def get_connection(self, zone_a: Zone, zone_b: Zone):
+    def get_connection(self, zone_a: Zone, zone_b: Zone) -> Connection | None:
         """
         Return the connection between two zones.
 
@@ -100,49 +103,10 @@ class Map:
             zone_b (Zone): The second zone.
 
         Returns:
-            Connection | None: The connection between the two zones, or None if no such connection exists.
+            Connection | None: The connection between the two zones,
+            or None if no such connection exists.
         """
         for c in self.connection_list[zone_a.name]:
             if c.hub_a is zone_b or c.hub_b is zone_b:
                 return c
         return None
-
-    def get_map_size(self):
-        """
-        Return the size of the map.
-
-        Returns:
-            dict[str, int]: A dictionary containing the minimum and maximum x and y coordinates.
-        """
-        zones = list(self.hubs.values()) + [self.start, self.end]
-        return {
-            "min_x": min(zone.x for zone in zones),
-            "min_y": min(zone.y for zone in zones),
-            "max_x": max(zone.x for zone in zones),
-            "max_y": max(zone.y for zone in zones)
-        }
-
-    def display_info(self) -> None:
-        """Print a summary of the parsed map.
-
-        Shows the number of drones, the start and end zones, every
-        regular hub with its metadata, and every connection with its
-        capacity.
-        """
-        print(f"Drones: {self.nb_of_drones}")
-        print(f"Start: {self.start.name} {self.start.coordinates}")
-        print(f"End: {self.end.name} {self.end.coordinates}")
-
-        print(f"Hubs ({len(self.hubs)}):")
-        for hub in self.hubs.values():
-            print(f"  - {hub.name} {hub.coordinates} "
-                  f"type={hub.zone_type.value} "
-                  f"max_drones={hub.max_drones} "
-                  f"color={hub.color}")
-
-        print(f"Connections ({len(self.connection_list)}):")
-        for connection in self.connection_list:
-            print(f"{connection}:")
-            for c in self.connection_list[connection]:
-                print(f" - {c.hub_a.name} to {c.hub_b.name} "
-                      f"max_link_capacity={c.max_link_capacity}")
