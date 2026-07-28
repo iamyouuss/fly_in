@@ -1,4 +1,5 @@
 from enum import Enum
+import random
 
 
 class Zone_Type(Enum):
@@ -30,6 +31,14 @@ class Drone:
         self.current_connection: Connection | None = None
         self.turns_in_transit: int = 0
         self.is_delivered: bool = False
+        characters = [
+            "src/beige.png",
+            "src/green.png",
+            "src/yellow.png",
+            "src/purple.png",
+            "src/pink.png"
+        ]
+        self.img = random.choice(characters)
 
     def __repr__(self) -> str:
         return f"D{self.drone_id}"

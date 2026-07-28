@@ -1,10 +1,11 @@
+import math
 import arcade
 from .Simulation import Simulation
 
-SCREEN_WIDTH = 1200
-SCREEN_HEIGHT = 720
+SCREEN_WIDTH = 3000
+SCREEN_HEIGHT = 920
 SCREEN_TITLE = "Fly-In Simulation"
-MARGIN = 100
+MARGIN = 150
 PALETTE = {
             "red": arcade.color.RED,
             "darkred": arcade.color.DARK_RED,
@@ -28,7 +29,6 @@ PALETTE = {
             "magenta": arcade.color.DARK_MAGENTA,
             "maroon": arcade.color.LIGHT_BROWN,
             "lime": arcade.color.LIME
-
 }
 
 
@@ -36,10 +36,9 @@ class Visualizer(arcade.Window):
     def __init__(self, simulation: Simulation) -> None:
         super().__init__(SCREEN_WIDTH, SCREEN_HEIGHT,
                          SCREEN_TITLE, resizable=True)
-        # self.maximize()
         self.sim = simulation
         self.chrono = 0.0
-        self.speed = 1.0
+        self.speed = 1
         self.background_color = arcade.color.BEIGE
 
         xs = [z.x for z in simulation.map.zones]
@@ -100,6 +99,42 @@ class Visualizer(arcade.Window):
                 arcade.color.BLACK, max(8, text_size * 0.8),
                 anchor_x='center', anchor_y='bottom'
             )
+
+        for drone in self.sim.drones:
+            if drone.current_zone:
+                total = len(drone.current_zone.current_drones)
+                img = arcade.load_texture(drone.img)
+                x, y = self.get_pixel_position(drone.current_zone.x,
+                                               drone.current_zone.y)
+                if total > 1:
+                    index = drone.current_zone.current_drones.index(drone)
+                    angle = (index / total) * 2 * math.pi
+                    shift_x = math.cos(angle) * self.radius
+                    shift_y = math.sin(angle) * self.radius
+                    x += shift_x
+                    y += shift_y
+
+                arcade.draw_texture_rect(
+                    img,
+                    arcade.XYWH(
+                        x, y, img.width, img.height).scale(0.4)
+                )
+            elif drone.current_connection:
+                half_x = (
+                    drone.current_connection.hub_b.x
+                    + drone.current_connection.hub_a.x) / 2
+                half_y = (
+                    drone.current_connection.hub_a.y
+                    + drone.current_connection.hub_b.y) / 2
+                x, y = self.get_pixel_position(half_x, half_y)
+                img = arcade.load_texture(drone.img)
+                arcade.draw_texture_rect(
+                    img,
+                    arcade.XYWH(
+                        x, y, img.width, img.height).scale(0.4)
+                )
+        arcade.draw_text(
+            f"Turn: {self.sim.turn_counter}", 25, 25, arcade.color.BLACK, 15)
 
 
 """     def start_simulation(self) -> None:
