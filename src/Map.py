@@ -1,5 +1,6 @@
 from enum import Enum
 import random
+import arcade
 
 
 class Zone_Type(Enum):
@@ -30,6 +31,7 @@ class Drone:
         self.current_zone: Zone | None = current_zone
         self.current_connection: Connection | None = None
         self.turns_in_transit: int = 0
+        self.message: str = ""
         self.is_delivered: bool = False
         characters = [
             "src/beige.png",
@@ -38,18 +40,22 @@ class Drone:
             "src/purple.png",
             "src/pink.png"
         ]
-        self.img = random.choice(characters)
+        self.img = arcade.load_texture(random.choice(characters))
 
     def __repr__(self) -> str:
         return f"D{self.drone_id}"
 
     def format_output(self) -> str:
+        msg = ""
         if self.current_connection is not None:
-            return (f"{self.current_connection.hub_a.name}-{self}-"
-                    f"{self.current_connection.hub_b.name}")
+            msg = (f"{self.current_connection.hub_a.name}-{self}-"
+                   f"{self.current_connection.hub_b.name}")
         elif self.current_zone is not None:
-            return f"{self}-{self.current_zone.name}"
-        return ""
+            msg = f"{self}-{self.current_zone.name}"
+        if msg == self.message:
+            return ""
+        self.message = msg
+        return msg
 
 
 class Connection:

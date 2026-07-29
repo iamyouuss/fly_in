@@ -3,9 +3,9 @@ import arcade
 from .Simulation import Simulation
 
 SCREEN_WIDTH = 3000
-SCREEN_HEIGHT = 920
+SCREEN_HEIGHT = 1020
 SCREEN_TITLE = "Fly-In Simulation"
-MARGIN = 150
+MARGIN = 300
 PALETTE = {
             "red": arcade.color.RED,
             "darkred": arcade.color.DARK_RED,
@@ -36,10 +36,11 @@ class Visualizer(arcade.Window):
     def __init__(self, simulation: Simulation) -> None:
         super().__init__(SCREEN_WIDTH, SCREEN_HEIGHT,
                          SCREEN_TITLE, resizable=True)
-        self.sim = simulation
-        self.chrono = 0.0
-        self.speed = 1
+        self.sim: Simulation = simulation
+        self.chrono: float = 0.0
+        self.speed: int = 1
         self.background_color = arcade.color.BEIGE
+        self.turn_output: list[str] = []
 
         xs = [z.x for z in simulation.map.zones]
         ys = [z.y for z in simulation.map.zones]
@@ -71,6 +72,11 @@ class Visualizer(arcade.Window):
         if self.chrono >= self.speed:
             if not all(drone.is_delivered for drone in self.sim.drones):
                 self.sim.play_turn()
+                self.turn_output = []
+                for drone in self.sim.drones:
+                    output = drone.format_output()
+                    if output:
+                        self.turn_output.append(output)
                 self.sim.turn_counter += 1
             self.chrono = 0.0
 
@@ -103,7 +109,7 @@ class Visualizer(arcade.Window):
         for drone in self.sim.drones:
             if drone.current_zone:
                 total = len(drone.current_zone.current_drones)
-                img = arcade.load_texture(drone.img)
+                img = drone.img
                 x, y = self.get_pixel_position(drone.current_zone.x,
                                                drone.current_zone.y)
                 if total > 1:
@@ -115,7 +121,7 @@ class Visualizer(arcade.Window):
                     y += shift_y
 
                 arcade.draw_texture_rect(
-                    img,
+                    drone.img,
                     arcade.XYWH(
                         x, y, img.width, img.height).scale(0.4)
                 )
@@ -127,14 +133,20 @@ class Visualizer(arcade.Window):
                     drone.current_connection.hub_a.y
                     + drone.current_connection.hub_b.y) / 2
                 x, y = self.get_pixel_position(half_x, half_y)
-                img = arcade.load_texture(drone.img)
+                img = drone.img
                 arcade.draw_texture_rect(
                     img,
                     arcade.XYWH(
                         x, y, img.width, img.height).scale(0.4)
                 )
         arcade.draw_text(
-            f"Turn: {self.sim.turn_counter}", 25, 25, arcade.color.BLACK, 15)
+            f"Turn: {self.sim.turn_counter}",
+            25, 60, arcade.color.BLACK, 20)
+        arcade.draw_text(
+            "  ".join(self.turn_output),
+            25, 25,
+            arcade.color.BLACK, 15,
+                        )
 
 
 """     def start_simulation(self) -> None:
@@ -143,9 +155,7 @@ class Visualizer(arcade.Window):
         while not all(drone.is_delivered for drone in self.drones):
             self.turn_counter += 1
             self.play_turn()
-            turn_output = [
-            drone.format_output() for drone in self.drones
-            if drone.format_output()]
+            
             if turn_output:
                 print(f"Turn {self.turn_counter}:")
                 for output in turn_output:
