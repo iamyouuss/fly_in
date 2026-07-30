@@ -67,6 +67,7 @@ class Parser:
             if self.end is not None:
                 raise ValueError("[Error] More than one end hub detected")
             self.end = hub
+            self.end.max_drones = self.nb_drones
         else:
             self.hubs[hub.name] = hub
 

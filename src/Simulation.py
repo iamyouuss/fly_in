@@ -8,6 +8,7 @@ class Simulation:
         self.drones: list[Drone] = []
         self.traffic_load: dict[Zone, int] = {}
         self.turn_counter: int = 0
+        self.max_turns: int = 50
 
     def create_drones(self) -> None:
         """Creates the drones for the simulation."""
@@ -30,7 +31,6 @@ class Simulation:
                 drone.current_connection = None
 
                 drone.current_zone = destination
-                # destination.current_drones.append(drone)
                 drone.path.remove(destination)
                 if destination == self.map.end:
                     drone.is_delivered = True
@@ -120,7 +120,7 @@ class Simulation:
                     path[neighbor] = current
         return self.get_final_path(path)
 
-    def plan_all_drone_paths(self):
+    def plan_all_drone_paths(self) -> None:
         """Plans the paths for all drones in the simulation."""
         for hub in self.map.hubs.values():
             self.traffic_load[hub] = 0

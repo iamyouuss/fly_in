@@ -2,10 +2,10 @@ import math
 import arcade
 from .Simulation import Simulation
 
-SCREEN_WIDTH = 3000
+SCREEN_WIDTH = 2400
 SCREEN_HEIGHT = 1020
 SCREEN_TITLE = "Fly-In Simulation"
-MARGIN = 300
+MARGIN = 150
 PALETTE = {
             "red": arcade.color.RED,
             "darkred": arcade.color.DARK_RED,
@@ -37,6 +37,7 @@ class Visualizer(arcade.Window):
         super().__init__(SCREEN_WIDTH, SCREEN_HEIGHT,
                          SCREEN_TITLE, resizable=True)
         self.sim: Simulation = simulation
+        self.auto_play: bool = False
         self.chrono: float = 0.0
         self.speed: int = 1
         self.background_color = arcade.color.BEIGE
@@ -66,19 +67,42 @@ class Visualizer(arcade.Window):
             self.origin_y + y * self.scale_y
         )
 
-    def on_update(self, delta_time) -> None:
-        self.chrono += delta_time
+    def step_forward(self) -> None:
+        """Joue un tour de simulation et met à jour l'affichage."""
+        if not all(drone.is_delivered for drone in self.sim.drones):
+            self.sim.play_turn()
 
-        if self.chrono >= self.speed:
-            if not all(drone.is_delivered for drone in self.sim.drones):
-                self.sim.play_turn()
-                self.turn_output = []
-                for drone in self.sim.drones:
-                    output = drone.format_output()
-                    if output:
-                        self.turn_output.append(output)
-                self.sim.turn_counter += 1
+            self.turn_output = []
+            for drone in self.sim.drones:
+                output = drone.format_output()
+                if output and "start" not in output:
+                    self.turn_output.append(output)
+
+            self.sim.turn_counter += 1
+
+    def on_key_press(self, key: int, modifiers: int) -> None:
+        if key == arcade.key.SPACE:
+            self.auto_play = not self.auto_play
             self.chrono = 0.0
+        if key == arcade.key.RIGHT:
+            self.auto_play = False
+            self.step_forward()
+
+    def on_update(self, delta_time) -> None:
+        if self.auto_play:
+            self.chrono += delta_time
+            if self.chrono >= self.speed:
+                """ if not all(
+                drone.is_delivered for drone in self.sim.drones):
+                    self.sim.play_turn()
+                    self.turn_output = []
+                    for drone in self.sim.drones:
+                        output = drone.format_output()
+                        if output and "start" not in output:
+                            self.turn_output.append(output)
+                    self.sim.turn_counter += 1 """
+                self.step_forward()
+                self.chrono = 0.0
 
     def on_draw(self) -> None:
         self.clear()
@@ -96,13 +120,11 @@ class Visualizer(arcade.Window):
             x, y = self.get_pixel_position(zone.x, zone.y)
             color = PALETTE.get(zone.color, arcade.color.DARK_GRAY)
             r = self.radius
-            text_size = max(9, r * 0.45)
             arcade.draw_circle_filled(x, y, r, color)
-
             arcade.draw_text(
                 f"{len(zone.current_drones)}/{zone.max_drones}",
-                x, y + r + 4,
-                arcade.color.BLACK, max(8, text_size * 0.8),
+                x, y + r + 2,
+                arcade.color.BLACK, 10,
                 anchor_x='center', anchor_y='bottom'
             )
 
@@ -139,27 +161,26 @@ class Visualizer(arcade.Window):
                     arcade.XYWH(
                         x, y, img.width, img.height).scale(0.4)
                 )
+            arcade.draw_text(
+                f"{drone}",
+                x, y - 40,
+                arcade.color.GRAY, 10
+            )
+        mode = "Auto-Play" if self.auto_play else "Manual"
         arcade.draw_text(
-            f"Turn: {self.sim.turn_counter}",
-            25, 60, arcade.color.BLACK, 20)
-        arcade.draw_text(
-            "  ".join(self.turn_output),
-            25, 25,
-            arcade.color.BLACK, 15,
-                        )
+            f"Turn: {self.sim.turn_counter} "
+            f"| {mode} | Press ← or → to navigate | "
+            "Press SPACE to switch auto/manual",
+            25, SCREEN_HEIGHT - 40, arcade.color.BLACK, 15)
+        count = 8
+        lines = []
 
+        for i in range(0, len(self.turn_output), count):
+            morceau = self.turn_output[i: i + count]
+            lines.append("  ".join(morceau))
 
-"""     def start_simulation(self) -> None:
-        self.create_drones()
-        self.plan_all_drone_paths()
-        while not all(drone.is_delivered for drone in self.drones):
-            self.turn_counter += 1
-            self.play_turn()
-            
-            if turn_output:
-                print(f"Turn {self.turn_counter}:")
-                for output in turn_output:
-                    print(f"  {output}")
-
-        print(f"Simulation done in: {self.turn_counter} turn(s)")
-        """
+        start = 25 + (len(lines) * 20)
+        current = start
+        for ligne in lines:
+            arcade.draw_text(ligne, 25, current, arcade.color.BLACK, 13)
+            current -= 30
