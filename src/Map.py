@@ -13,13 +13,13 @@ class Zone_Type(Enum):
 class Zone:
     def __init__(self, name: str, x: int, y: int,
                  max_drones: int = 1, zone_type: str = "normal",
-                 color: str | None = None) -> None:
+                 color: str = "grey") -> None:
         self.name: str = name
         self.x: int = x
         self.y: int = y
         self.max_drones: int = max_drones
         self.zone_type: Zone_Type = Zone_Type(zone_type)
-        self.color: str | None = color
+        self.color: str = color
         self.movement_cost: int = 2 if zone_type == "restricted" else 1
         self.current_drones: list[Drone] = []
 
@@ -34,11 +34,11 @@ class Drone:
         self.message: str = ""
         self.is_delivered: bool = False
         characters = [
-            "src/beige.png",
-            "src/green.png",
-            "src/yellow.png",
-            "src/purple.png",
-            "src/pink.png"
+            "src/img/beige.png",
+            "src/img/green.png",
+            "src/img/yellow.png",
+            "src/img/purple.png",
+            "src/img/pink.png"
         ]
         self.img = arcade.load_texture(random.choice(characters))
 
@@ -65,11 +65,6 @@ class Connection:
         self.hub_b: Zone = hub_b
         self.max_link_capacity: int = max_link_capacity
         self.current_drones: list[Drone] = []
-
-    def __repr__(self) -> str:
-        return (f"{self.hub_a}-"
-                f"{'-'.join(d for d in self.current_drones)}-{self.hub_b}"
-                )
 
 
 class Map:

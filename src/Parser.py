@@ -46,7 +46,7 @@ class Parser:
             raise ValueError(f"[Error] Invalid format for zone name '{name}': "
                              "spaces and dashes not allowed")
 
-        existing_zone = self._get_zone_by_name(name)
+        existing_zone = self.get_zone_by_name(name)
         if existing_zone is not None:
             raise ValueError(f"[Error] Zone name {name} already exists")
 
@@ -71,7 +71,7 @@ class Parser:
         else:
             self.hubs[hub.name] = hub
 
-    def _get_zone_by_name(self, name: str) -> Zone | None:
+    def get_zone_by_name(self, name: str) -> Zone | None:
         if self.start and self.start.name == name:
             return self.start
         if self.end and self.end.name == name:
@@ -88,8 +88,8 @@ class Parser:
             raise ValueError(
                 f"[Error] Connection between {a} and {b} already exists")
         self._existing_connections.add(test_connection)
-        hub_a = self._get_zone_by_name(a)
-        hub_b = self._get_zone_by_name(b)
+        hub_a = self.get_zone_by_name(a)
+        hub_b = self.get_zone_by_name(b)
         if hub_a is None or hub_b is None:
             raise ValueError(
                 f"[Error] Zone '{a if hub_a is None else b}' not found")

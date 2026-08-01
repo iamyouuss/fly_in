@@ -13,6 +13,9 @@ def main() -> None:
     simulation = Simulation(map_zone)
     visualizer = Visualizer(simulation)
     visualizer.run()
+    with open("output.txt", "w") as f:
+        f.write(simulation.output)
+        print(simulation.output)
 
 
 if __name__ == "__main__":

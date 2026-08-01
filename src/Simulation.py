@@ -9,6 +9,8 @@ class Simulation:
         self.traffic_load: dict[Zone, int] = {}
         self.turn_counter: int = 0
         self.max_turns: int = 50
+        self.output: str = ""
+        self.sim_done: bool = False
 
     def create_drones(self) -> None:
         """Creates the drones for the simulation."""
@@ -18,46 +20,41 @@ class Simulation:
             self.map.start.current_drones.append(drone)
 
     def play_turn(self) -> None:
-
+        """Plays a single turn of the simulation."""
         for drone in self.drones:
             if drone.is_delivered:
                 continue
             if drone.turns_in_transit > 0:
                 drone.turns_in_transit -= 1
+
             if drone.current_connection and drone.turns_in_transit == 0:
                 destination = drone.path[0]
-
                 drone.current_connection.current_drones.remove(drone)
                 drone.current_connection = None
-
                 drone.current_zone = destination
                 drone.path.remove(destination)
                 if destination == self.map.end:
                     drone.is_delivered = True
                 continue
+
             if not drone.current_connection and drone.path:
                 destination = drone.path[0]
+                assert drone.current_zone is not None
                 connection = self.map.get_connection(
                     drone.current_zone, destination)
-
+                assert connection is not None
                 if len(destination.current_drones) < destination.max_drones:
-
                     if destination.zone_type == Zone_Type.RESTRICTED:
                         drone.current_zone.current_drones.remove(drone)
                         drone.current_zone = None
-
                         drone.current_connection = connection
                         connection.current_drones.append(drone)
                         drone.turns_in_transit = 1
-
                         destination.current_drones.append(drone)
-
                     else:
                         drone.current_zone.current_drones.remove(drone)
-
                         drone.current_zone = destination
                         destination.current_drones.append(drone)
-
                         drone.path.remove(destination)
                         if destination == self.map.end:
                             drone.is_delivered = True

@@ -1,0 +1,10 @@
+[project]
+name = "Fly-In"
+version = "1.0.0"
+description = "Pathfinding for drones"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "arcade",
+    "mypy"
+]
