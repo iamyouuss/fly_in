@@ -23,6 +23,9 @@ class Zone:
         self.movement_cost: int = 2 if zone_type == "restricted" else 1
         self.current_drones: list[Drone] = []
 
+    def __repr__(self):
+        return f"Zone{self.name}: {len(self.current_drones)}/{self.max_drones} drones "
+
 
 class Drone:
     def __init__(self, drone_id: int, current_zone: Zone) -> None:
@@ -48,7 +51,7 @@ class Drone:
     def format_output(self) -> str:
         msg = ""
         if self.current_connection is not None:
-            msg = (f"{self.current_connection.hub_a.name}-{self}-"
+            msg = (f"{self}-{self.current_connection.hub_a.name}-"
                    f"{self.current_connection.hub_b.name}")
         elif self.current_zone is not None:
             msg = f"{self}-{self.current_zone.name}"
@@ -65,6 +68,9 @@ class Connection:
         self.hub_b: Zone = hub_b
         self.max_link_capacity: int = max_link_capacity
         self.current_drones: list[Drone] = []
+
+    def __repr__(self):
+            return f"Connection{self.hub_a.name}-{self.hub_b.name}: {len(self.current_drones)}/{self.max_link_capacity} capacity used "
 
 
 class Map:

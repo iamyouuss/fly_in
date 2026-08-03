@@ -1,5 +1,7 @@
 import math
 import arcade
+
+from src.Map import Zone_Type
 from .Simulation import Simulation
 
 SCREEN_WIDTH = 2400
@@ -77,6 +79,7 @@ class Visualizer(arcade.Window):
                     self.sim.output += output + " "
             self.sim.turn_counter += 1
             self.sim.output += "\n"
+            self.sim.output += self.sim.get_capacity_info()
         else:
             self.sim.sim_done = True
 
@@ -120,6 +123,8 @@ class Visualizer(arcade.Window):
                 arcade.color.BLACK, 10,
                 anchor_x='center', anchor_y='bottom'
             )
+            if zone.zone_type == Zone_Type.RESTRICTED:
+                arcade.draw_circle_outline(x, y, radius, arcade.color.GRAY, 5)
 
         for drone in self.sim.drones:
             if drone.current_zone:

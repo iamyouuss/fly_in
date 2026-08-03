@@ -3,7 +3,7 @@ from .Map import Map, Zone, Zone_Type, Drone
 
 class Simulation:
     """Represents the simulation environment for drone navigation."""
-    def __init__(self, map: Map) -> None:
+    def __init__(self, map: Map, capacity_info: bool) -> None:
         self.map: Map = map
         self.drones: list[Drone] = []
         self.traffic_load: dict[Zone, int] = {}
@@ -11,6 +11,7 @@ class Simulation:
         self.max_turns: int = 50
         self.output: str = ""
         self.sim_done: bool = False
+        self.capacity_info: bool = capacity_info
 
     def create_drones(self) -> None:
         """Creates the drones for the simulation."""
@@ -127,3 +128,14 @@ class Simulation:
             for zone in drone.path:
                 if zone != self.map.start and zone != self.map.end:
                     self.traffic_load[zone] += 1
+
+    def get_capacity_info(self) -> str:
+        if not self.capacity_info:
+            return ""
+        info = "Capacity Info:\n"
+        for zone in self.map.zones:
+            info += f"{zone}"
+        for connection in self.map.connection_list.values():
+            info += f"{connection}"
+        info += "\n"
+        return info

@@ -1,0 +1,12 @@
+D1-waypoint1 
+Capacity Info:
+Zonestart: 1/1 drones Zonegoal: 0/2 drones Zonewaypoint1: 1/1 drones Zonewaypoint2: 0/1 drones [Connectionstart-waypoint1: 0/1 capacity used ][Connectionwaypoint2-goal: 0/1 capacity used ][Connectionstart-waypoint1: 0/1 capacity used , Connectionwaypoint1-waypoint2: 0/1 capacity used ][Connectionwaypoint1-waypoint2: 0/1 capacity used , Connectionwaypoint2-goal: 0/1 capacity used ]
+D1-waypoint2 D2-waypoint1 
+Capacity Info:
+Zonestart: 0/1 drones Zonegoal: 0/2 drones Zonewaypoint1: 1/1 drones Zonewaypoint2: 1/1 drones [Connectionstart-waypoint1: 0/1 capacity used ][Connectionwaypoint2-goal: 0/1 capacity used ][Connectionstart-waypoint1: 0/1 capacity used , Connectionwaypoint1-waypoint2: 0/1 capacity used ][Connectionwaypoint1-waypoint2: 0/1 capacity used , Connectionwaypoint2-goal: 0/1 capacity used ]
+D1-goal D2-waypoint2 
+Capacity Info:
+Zonestart: 0/1 drones Zonegoal: 1/2 drones Zonewaypoint1: 0/1 drones Zonewaypoint2: 1/1 drones [Connectionstart-waypoint1: 0/1 capacity used ][Connectionwaypoint2-goal: 0/1 capacity used ][Connectionstart-waypoint1: 0/1 capacity used , Connectionwaypoint1-waypoint2: 0/1 capacity used ][Connectionwaypoint1-waypoint2: 0/1 capacity used , Connectionwaypoint2-goal: 0/1 capacity used ]
+D2-goal 
+Capacity Info:
+Zonestart: 0/1 drones Zonegoal: 2/2 drones Zonewaypoint1: 0/1 drones Zonewaypoint2: 0/1 drones [Connectionstart-waypoint1: 0/1 capacity used ][Connectionwaypoint2-goal: 0/1 capacity used ][Connectionstart-waypoint1: 0/1 capacity used , Connectionwaypoint1-waypoint2: 0/1 capacity used ][Connectionwaypoint1-waypoint2: 0/1 capacity used , Connectionwaypoint2-goal: 0/1 capacity used ]
