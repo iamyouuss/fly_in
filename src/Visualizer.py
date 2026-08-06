@@ -78,8 +78,6 @@ class Visualizer(arcade.Window):
                     self.turn_output.append(output)
                     self.sim.output += output + " "
             self.sim.turn_counter += 1
-            self.sim.output += "\n"
-            self.sim.output += self.sim.get_capacity_info()
         else:
             self.sim.sim_done = True
 
@@ -91,6 +89,8 @@ class Visualizer(arcade.Window):
         if key == arcade.key.RIGHT:
             self.auto_play = False
             self.step_forward()
+        if key == arcade.key.Q:
+            arcade.exit()
 
     def on_update(self, delta_time: float) -> None:
         """Updates the visualizer."""
