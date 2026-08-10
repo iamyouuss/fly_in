@@ -93,6 +93,7 @@ class Visualizer(arcade.Window):
                 if output and "start" not in output:
                     self.turn_output.append(output)
                     self.sim.output += output + " "
+            self.sim.output += "\n"
             self.sim.turn_counter += 1
         else:
             self.sim.sim_done = True
