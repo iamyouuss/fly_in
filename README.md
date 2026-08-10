@@ -1,68 +1,94 @@
+*This project has been created as part of the 42 curriculum by yghergho.*
+
 # Fly-In
 
-Fly-In Simulation is a Python-based turn-by-turn simulation and visualization tool for drone logistics. It calculates and animates the movement of multiple drones navigating through a network of zones (hubs) and connections (routes) to reach their destination.
+## Description
+Fly-In Simulation is a Python-based turn-by-turn simulation and visualization tool for drone logistics. Its primary goal is to simulate and animate the movement of a fleet of drones as they navigate through a network of zones and connections to reach the delivery goal. 
 
-The project features a powerful underlying simulation engine and a smooth 2D visualizer built with the `arcade` library, complete with timeline navigation and real-time movement logs.
+The project bridges complex graph-based logical routing with a smooth 2D interactive visualizer, allowing users to analyze traffic, manage node capacities, and review the exact sequence of movements turn by turn.
 
-##  Features
+## Instructions
 
-*   **Smart Parsing & Pathfinding:** Parses a custom map layout and automatically plans the paths for all drones.
-*   **2D Visualization:** A dynamic window displaying zones, connections, and drone sprites.
-    *   *Smooth Animations:* Drones glide smoothly between zones using Linear Interpolation (Lerp).
-    *   *Smart Positioning:* Drones waiting on the same zone automatically arrange themselves in a circular orbit to avoid overlapping.
-*   **Interactive Playback:** Behave like a video player! Watch the simulation unfold automatically or take manual control to analyze specific turns.
-*   **On-Screen HUD:** Displays real-time logs of drone movements and zone capacities directly on the screen.
-*   **Output Generation:** Automatically generates an `output.txt` file containing the detailed logs of the entire simulation upon completion.
+### Requirements
+*   **Python:** 3.10 or higher.
+*   **Dependencies:** The `arcade` library is required for the 2D visualizer.
+    ```bash
+    make install
+    ```
 
-## Requirements
-
-*   Python 3.10+ (Recommended)
-*   [Arcade Library](https://api.arcade.academy/en/latest/) (`arcade`)
-
-To install the required dependencies, simply run:
-```bash
-make install
-```
-## Usage
+### Execution
 Run the program via the command line by providing a map file.
-```
-python3 main.py <filepath>
-```
-Arguments:
-filepath (Required): The path to the map configuration file (e.g., map.txt).
 
-You can also use the following Makefile command:
+```bash
+python3 main.py maps/medium/01_dead_end_trap.txt
 ```
-make run ARGS=<filpath>
+Using makefile:
+```
+make run ARGS=maps/medium/01_dead_end.txt
 ```
 
-## Visualizer Controls
-Once the window opens, the simulation starts in Manual mode. You can use your keyboard to control the playback:
+### Controls (Visualizer)
+Once the simulation window opens, it starts in Manual mode. You can navigate the timeline manually using your keyboard:
 
-- **Space**	: Toggle between Auto-Play and Manual mode.
+- **SPACE**: Toggle between Auto-Play and Manual mode.
 
-- **Right arrow** (→) :	Step forward by one turn (Forces Manual mode).
+- **RIGHT ARROW** (→): Step forward by one turn (forces Manual mode).
 
-- **Left arrow** (←) : Step backward by one turn (Forces Manual mode).
+- **Q**: Quit the application and generate the output.txt log file.
 
-- **Q** : Quit visualization
+## Algorithm Choices and Implementation Strategy
+The program is architected to strictly separate the logical simulation from the visual rendering. Instead of a "live engine" that computes data on the fly, it uses a Pre-computed History Paradigm.
 
-## Output
-When you close the visualizer window, the program automatically writes the simulation history to an output.txt file in the root directory. It also prints the final logs to the standard output (terminal).
+1. **Parsing & Topology**: The Parser reads the input map file and instantiates a graph of Zone objects connected by Connection objects (using an adjacency dictionary).
 
-The log format per turn looks like this:
+2. **Pathfinding**: After initialization, the `Simulation` engine calculates the optimal path for every drone from its start to goal.
+
+3. **Simulation Engine** : The simulation processes drone movements one turn at a time, updating drone statuses and capacities.
+
+4. **Render**: The Visualizer class acts purely as a reader. It only reads the current state variables of the drones and maps, it never alters the simulation data itself.
+
+## Visual Representation Features
+The visualizer, built with Python Arcade, is designed to enhance the user experience by making complex data easily readable:
+
+- **Dynamic Smart Orbiting**: When multiple drones wait on the exact same zone, they are mathematically distributed in a circular orbit around the hub's center based on trigonometry (math.cos, math.sin). This prevents sprite overlapping and provides an immediate visual cue of traffic jams.
+
+- **On-Screen HUD**: Movement logs and capacities are drawn directly onto the screen. The text dynamically chunks itself to prevent overflowing past the bottom of the window, providing real-time analytical feedback.
+
+## Example Input and Expected Output
+### Example Command:
+
 ```
-D1-roof1 D2-corridorA
-D1-roof2 D2-tunnelB
-D1-goal D2-goal
+python main.py maps/medium/01_dead_end_trap.txt
 ```
-(Drones that do not move during a turn are smartly filtered out of the logs to keep the output clean).
+### Expected Visual Behavior:
+The Arcade window will open, showing a graph of colored circles (Zones) connected by lines (Connections). Drone will move across the lines. The text logs will update in the bottom left corner turn by turn.
 
+![image](src/img/visual.png)
 
-## Architecture Overview
+![image](src/img/end_sim_visual.png)
 
-**Parser**: Reads the text file and generates the map topology (Zones and Connections).
+### Expected Terminal Output (`output.txt`):
+When the window is closed, the `output.txt` file, containing turn-by-turn logs, will be generated and displays itself in terminal:
+ ￼
+```￼
+D1-junction D2-junction 
+D1-correct_path D3-junction 
+D1-intermediate D2-correct_path D4-junction 
+D1-goal D2-intermediate D3-correct_path D5-junction 
+D2-goal D3-intermediate D4-correct_path 
+D3-goal D4-intermediate D5-correct_path 
+D4-goal D5-intermediate 
+D5-goal
+```
 
-**Simulation & Drone**: The logical brain. Calculates pathfinding, turns in transit, and records the history of drone positions for time-travel navigation.
+## Resources
+- [Djikstra algorithm explanation](https://www.geeksforgeeks.org/dsa/dijkstras-shortest-path-algorithm-greedy-algo-7/) 
 
-**Visualizer**: The arcade.Window class responsible for drawing the map, animating the drones, rendering the HUD, and handling keyboard inputs.
+- [Python Arcade Library](https://api.arcade.academy/en/stable/index.html)
+
+### AI Usage Statement
+- Debug Game Loops: Fix issues related to the separation between on_update (logic) and on_draw (rendering) in the Arcade library.
+
+- Math Implementation: Formulate the trigonometry required for the drone circular orbit distribution.
+
+- Readme redaction

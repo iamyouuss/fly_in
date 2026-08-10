@@ -11,6 +11,7 @@ class Zone_Type(Enum):
 
 
 class Zone:
+    """Represents a zone in the Fly-In simulation."""
     def __init__(self, name: str, x: int, y: int,
                  max_drones: int = 1, zone_type: str = "normal",
                  color: str = "grey") -> None:
@@ -24,12 +25,15 @@ class Zone:
         self.current_drones: list[Drone] = []
 
     def __repr__(self) -> str:
+        """Returns a string representation of the zone."""
         return (f"Zone{self.name}: "
                 f"{len(self.current_drones)}/{self.max_drones} drones ")
 
 
 class Drone:
+    """Represents a drone in the Fly-In simulation."""
     def __init__(self, drone_id: int, current_zone: Zone) -> None:
+        """Initializes the drone."""
         self.drone_id: int = drone_id
         self.path: list[Zone] = []
         self.current_zone: Zone | None = current_zone
@@ -47,9 +51,16 @@ class Drone:
         self.img = arcade.load_texture(random.choice(characters))
 
     def __repr__(self) -> str:
+        """Returns a string representation of the drone."""
         return f"D{self.drone_id}"
 
     def format_output(self) -> str:
+        """
+        Formats the output for the drone.
+        
+        Returns:
+            str: The formatted output for the drone.
+        """
         msg = ""
         if self.current_connection is not None:
             msg = (f"{self}-{self.current_connection.hub_a.name}-"
@@ -63,6 +74,7 @@ class Drone:
 
 
 class Connection:
+    """Represents a connection between two zones."""
     def __init__(self, hub_a: Zone, hub_b: Zone, max_link_capacity: int = 1
                  ) -> None:
         self.hub_a: Zone = hub_a
@@ -71,12 +83,14 @@ class Connection:
         self.current_drones: list[Drone] = []
 
     def __repr__(self) -> str:
+        """Returns a string representation of the connection."""
         return (f"Connection{self.hub_a.name}-{self.hub_b.name}: "
                 f"{len(self.current_drones)}/{self.max_link_capacity} "
                 "capacity used ")
 
 
 class Map:
+    """Represents the map for the Fly-In simulation."""
     def __init__(self, number_of_drones: int, start: Zone,
                  hubs: dict[str, Zone], end: Zone,
                  connections: list[Connection]) -> None:
@@ -90,6 +104,15 @@ class Map:
 
     def _build_connections(self, connections: list[Connection]
                            ) -> dict[str, list[Connection]]:
+        """
+        Builds the connection list for each zone.
+        
+        Args:
+            connections (list[Connection]): The list of connections to build the list from.
+        
+        Returns:
+            dict[str, list[Connection]]: The connection list for each zone.
+        """
         connection_list: dict[str, list[Connection]] = {}
         zone_names = [self.start.name, self.end.name] + list(self.hubs.keys())
         for name in zone_names:

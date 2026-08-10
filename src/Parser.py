@@ -10,45 +10,73 @@ class Parser:
         self.hubs: dict[str, Zone] = {}
         self.nb_drones: int = 0
         self.connections: list[Connection] = []
-        self._existing_connections: set[tuple[str, str]] = set()
+        self.existing_connections: set[tuple[str, str]] = set()
 
     def parse_metadata(self, metadata_str: str) -> dict[str, Any]:
+        """
+        Parse metadata string into a dictionary.
+        
+        Args:
+            metadata_str (str): The metadata string to parse.
+        
+        Returns:
+            dict[str, Any]: The parsed metadata dictionary.
+        """
         metadata: dict[str, Any] = {}
         data = metadata_str.replace("]", '').strip().split()
+        if not data:
+            return metadata
         for line in data:
-            key, value = line.split("=")
+            key, value = line.split("=") if "=" in line else (line, None)
+            if not key or not value:
+                raise ValueError(f"Invalid metadata format '{line}' "
+                                 f"(expected format: 'key=value')")
             if key == "max_drones":
-                if int(value) < 1:
-                    raise ValueError(
-                        f"[Error] Invalid value for 'max_drones': {value}")
+                try:
+                    drone = int(value)
+                except ValueError:
+                    raise ValueError(f"Invalid value for 'max_drones': "
+                                     f"{value} is not an integer")
+                if drone < 1:
+                    raise ValueError("'max_drones' must be superior to 0")
                 metadata["max_drones"] = int(value)
             elif key == "zone":
                 try:
                     Zone_Type(value)
                 except ValueError:
                     raise ValueError(
-                        f"[Error] Invalid value for 'zone': {value}")
+                        f"Invalid zone '{value}' (only 'normal', "
+                        "'restricted', 'blocked' and 'priority' allowed)")
                 metadata["zone_type"] = value
             elif key == "color":
                 metadata["color"] = value
             else:
-                raise ValueError(f"[Error] Invalid metadata key '{key}'")
+                raise ValueError(f"Invalid metadata key '{key}' (only 'color',"
+                                 " 'zone_type' and 'max_drones' allowed)")
         return metadata
 
     def init_hub(self, prefix: str, content: str) -> None:
+        """
+        Initialize a hub.
+        
+        Args:
+            prefix (str): The prefix for the hub.
+            content (str): The content for the hub.
+        """
         parts = content.split("[")
         data = parts[0].split()
         if len(data) != 3:
             raise ValueError(
-                f"Invalid number of arguments for line '{content}'")
+                f"Invalid number of arguments for line '{content}' "
+                "(expected 3: name, x, y)")
         name = data[0]
         if "-" in name:
-            raise ValueError(f"[Error] Invalid format for zone name '{name}': "
-                             "spaces and dashes not allowed")
+            raise ValueError(f"Invalid zone name '{name}' "
+                             "(spaces and dashes not allowed)")
 
         existing_zone = self.get_zone_by_name(name)
         if existing_zone is not None:
-            raise ValueError(f"[Error] Zone name {name} already exists")
+            raise ValueError(f"Zone name '{name}' already exists")
 
         x = int(data[1])
         y = int(data[2])
@@ -61,17 +89,26 @@ class Parser:
 
         if prefix == "start_hub":
             if self.start is not None:
-                raise ValueError("[Error] More than one start hub detected")
+                raise ValueError("More than one start hub detected")
             self.start = hub
         elif prefix == "end_hub":
             if self.end is not None:
-                raise ValueError("[Error] More than one end hub detected")
+                raise ValueError("More than one end hub detected")
             self.end = hub
             self.end.max_drones = self.nb_drones
         else:
             self.hubs[hub.name] = hub
 
     def get_zone_by_name(self, name: str) -> Zone | None:
+        """
+        Get a zone by its name.
+        
+        Args:
+            name (str): The name of the zone to get.
+        
+        Returns:
+            Zone | None: The zone if found, otherwise None.
+        """
         if self.start and self.start.name == name:
             return self.start
         if self.end and self.end.name == name:
@@ -80,19 +117,29 @@ class Parser:
             return self.hubs[name]
         return None
 
-    def init_connection(self, connection_str: str) -> None:
-        parts = connection_str.split("[")
-        a, b = [h.strip() for h in parts[0].split("-")]
+    def init_connection(self, con_str: str) -> None:
+        """
+        Initialize a connection between two zones.
+
+        Args:
+            con_str (str): The connection string to initialize.
+        """
+        parts = con_str.split("[")
+        nodes = [h.strip() for h in parts[0].split("-")]
+        if len(nodes) != 2 or not all(nodes):
+            raise ValueError(f"Invalid connection format for '{con_str}'"
+                             " (expected format: 'zone1-zone2')")
+        a, b = nodes
         test_connection = (min(a, b), max(a, b))
-        if test_connection in self._existing_connections:
+        if test_connection in self.existing_connections:
             raise ValueError(
-                f"[Error] Connection between {a} and {b} already exists")
-        self._existing_connections.add(test_connection)
+                f"Connection between {a} and {b} already exists")
+        self.existing_connections.add(test_connection)
         hub_a = self.get_zone_by_name(a)
         hub_b = self.get_zone_by_name(b)
         if hub_a is None or hub_b is None:
             raise ValueError(
-                f"[Error] Zone '{a if hub_a is None else b}' not found")
+                f"Zone '{a if hub_a is None else b}' not found")
         if len(parts) > 1:
             metadata = parts[1]
             metadata = metadata.replace("]", "")
@@ -100,17 +147,22 @@ class Parser:
             if key == "max_link_capacity":
                 if int(value) < 1:
                     raise ValueError(
-                        f"[Error] Invalid value for 'max_link_capacity': "
-                        f"{value}")
+                        "'max_link_capacity' must be superior to 0")
                 max_link_capacity = int(value)
                 self.connections.append(
                     Connection(hub_a, hub_b, max_link_capacity))
             else:
-                raise ValueError(f"[Error] Invalid metadata key '{key}'")
+                raise ValueError(f"Invalid metadata key '{key}'")
         else:
             self.connections.append(Connection(hub_a, hub_b))
 
     def parse(self, file_name: str) -> None:
+        """
+        Parse the input file.
+        
+        Args:
+            file_name (str): The name of the input file to parse.
+        """
         try:
             with open(file_name, "r") as f:
                 for i, line in enumerate(f, start=1):
@@ -121,36 +173,51 @@ class Parser:
                         continue
                     prefix, content = [c.strip() for c in cutted_line]
                     if prefix == "nb_drones":
-                        if int(content) < 1:
+                        try:
+                            nb = int(content)
+                        except ValueError:
                             raise ValueError(
-                                f"[Error] Invalid value for 'nb_drones': "
-                                f"{content}")
-                        self.nb_drones = int(content)
+                                f"Invalid format for 'nb_drones': "
+                                f"'{content}' is not an integer")
+                        if nb < 1:
+                            raise ValueError(
+                                "'nb_drones' must be superior to 0")
+                        self.nb_drones = nb
                     elif prefix in ("start_hub", "end_hub", "hub"):
                         self.init_hub(prefix, content)
                     elif prefix == "connection":
                         self.init_connection(content)
+                    else:
+                        raise ValueError(f"Invalid prefix '{prefix}' (only "
+                                         "'nb_drones', 'start_hub', 'end_hub',"
+                                         " 'hub' and 'connection' allowed)")
         except FileNotFoundError:
             print(f"[Error] The file '{file_name}' was not found.")
             sys.exit(1)
         except ValueError as e:
-            print(f"[Error] Invalid value at line {i}: {e}")
+            print(f"[Error] at line {i}: {e}")
             sys.exit(1)
 
     def create_map(self) -> Map:
+        """
+        Create a map from the parsed data.
+        
+        Returns:
+            Map: A Map object.
+        """
         try:
             if self.start is None or self.end is None:
                 raise ValueError(
-                    "[Error] Failed to create Map: no start or end hub")
+                    "no start or end hub")
             if self.nb_drones < 1:
                 raise ValueError(
-                    "[Error] Failed to create map: number of drone invalid")
+                    "number of drone invalid")
             if not self.hubs:
                 raise ValueError(
-                    "[Error] Failed to create Map: not enoug hub")
+                    "no hub found")
             if not self.connections:
                 raise ValueError(
-                    "[Error] Failed to create Map: no connection between hubs")
+                    "no connection between hubs")
             map_zone = Map(self.nb_drones, self.start, self.hubs, self.end,
                            self.connections)
             print("[Success] Map created succesfully !")

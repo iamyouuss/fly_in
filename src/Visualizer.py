@@ -35,7 +35,14 @@ PALETTE = {
 
 
 class Visualizer(arcade.Window):
+    """A visualizer for the Fly-In simulation."""
     def __init__(self, simulation: Simulation) -> None:
+        """
+        Initializes the visualizer.
+        
+        Args:
+            simulation (Simulation): The simulation to visualize.
+        """
         super().__init__(SCREEN_WIDTH, SCREEN_HEIGHT,
                          SCREEN_TITLE, resizable=True)
         self.sim: Simulation = simulation
@@ -61,14 +68,23 @@ class Visualizer(arcade.Window):
         self.sim.plan_all_drone_paths()
 
     def get_pixel_position(self, x: float, y: float) -> tuple[float, float]:
-        """Converts logical coordinates to pixel coordinates."""
+        """
+        Converts logical coordinates to pixel coordinates.
+
+        Args:
+            x (float): The x-coordinate in logical space.
+            y (float): The y-coordinate in logical space.
+        
+        Returns:
+            tuple[float, float]: The corresponding pixel coordinates.
+        """
         return (
             self.origin_x + x * self.scale_x,
             self.origin_y + y * self.scale_y
         )
 
     def step_forward(self) -> None:
-        """Joue un tour de simulation et met à jour l'affichage."""
+        """Plays a turn of the simulation and updates the display."""
         if not all(drone.is_delivered for drone in self.sim.drones):
             self.sim.play_turn()
             self.turn_output = []
