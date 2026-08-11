@@ -26,12 +26,14 @@ class Simulation:
                 continue
             if drone.turns_in_transit > 0:
                 drone.turns_in_transit -= 1
+                continue
 
             if drone.current_connection and drone.turns_in_transit == 0:
                 destination = drone.path[0]
                 drone.current_connection.current_drones.remove(drone)
                 drone.current_connection = None
                 drone.current_zone = destination
+                destination.current_drones.append(drone)
                 drone.path.remove(destination)
                 if destination == self.map.end:
                     drone.is_delivered = True
@@ -44,13 +46,14 @@ class Simulation:
                     drone.current_zone, destination)
                 assert connection is not None
                 if len(destination.current_drones) < destination.max_drones:
-                    if destination.zone_type == Zone_Type.RESTRICTED:
+                    if (destination.zone_type == Zone_Type.RESTRICTED
+                       and len(connection.current_drones
+                               ) < connection.max_link_capacity):
                         drone.current_zone.current_drones.remove(drone)
                         drone.current_zone = None
                         drone.current_connection = connection
                         connection.current_drones.append(drone)
                         drone.turns_in_transit = 1
-                        destination.current_drones.append(drone)
                     else:
                         drone.current_zone.current_drones.remove(drone)
                         drone.current_zone = destination
@@ -94,9 +97,8 @@ class Simulation:
                                         self.map.end: float('inf')}
         for hub in self.map.hubs.values():
             distances[hub] = float('inf')
+        to_visit = self.map.zones.copy()
         path: dict[Zone, Zone] = {}
-        to_visit = [self.map.start,
-                    self.map.end] + list(self.map.hubs.values())
 
         while to_visit:
             current = min(

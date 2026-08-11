@@ -15,10 +15,10 @@ class Parser:
     def parse_metadata(self, metadata_str: str) -> dict[str, Any]:
         """
         Parse metadata string into a dictionary.
-        
+
         Args:
             metadata_str (str): The metadata string to parse.
-        
+
         Returns:
             dict[str, Any]: The parsed metadata dictionary.
         """
@@ -29,7 +29,7 @@ class Parser:
         for line in data:
             key, value = line.split("=") if "=" in line else (line, None)
             if not key or not value:
-                raise ValueError(f"Invalid metadata format '{line}' "
+                raise ValueError(f"Invalid metadata format for '{line}' "
                                  f"(expected format: 'key=value')")
             if key == "max_drones":
                 try:
@@ -58,7 +58,7 @@ class Parser:
     def init_hub(self, prefix: str, content: str) -> None:
         """
         Initialize a hub.
-        
+
         Args:
             prefix (str): The prefix for the hub.
             content (str): The content for the hub.
@@ -102,10 +102,10 @@ class Parser:
     def get_zone_by_name(self, name: str) -> Zone | None:
         """
         Get a zone by its name.
-        
+
         Args:
             name (str): The name of the zone to get.
-        
+
         Returns:
             Zone | None: The zone if found, otherwise None.
         """
@@ -117,24 +117,24 @@ class Parser:
             return self.hubs[name]
         return None
 
-    def init_connection(self, con_str: str) -> None:
+    def init_connection(self, connection: str) -> None:
         """
         Initialize a connection between two zones.
 
         Args:
-            con_str (str): The connection string to initialize.
+            connection (str): The connection string to initialize.
         """
-        parts = con_str.split("[")
-        nodes = [h.strip() for h in parts[0].split("-")]
-        if len(nodes) != 2 or not all(nodes):
-            raise ValueError(f"Invalid connection format for '{con_str}'"
+        parts = connection.split("[")
+        zones = [h.strip() for h in parts[0].split("-")]
+        if len(zones) != 2 or not all(zones):
+            raise ValueError(f"Invalid connection format for '{connection}'"
                              " (expected format: 'zone1-zone2')")
-        a, b = nodes
-        test_connection = (min(a, b), max(a, b))
-        if test_connection in self.existing_connections:
+        a, b = zones
+        test = (min(a, b), max(a, b))
+        if test in self.existing_connections:
             raise ValueError(
                 f"Connection between {a} and {b} already exists")
-        self.existing_connections.add(test_connection)
+        self.existing_connections.add(test)
         hub_a = self.get_zone_by_name(a)
         hub_b = self.get_zone_by_name(b)
         if hub_a is None or hub_b is None:
@@ -144,11 +144,22 @@ class Parser:
             metadata = parts[1]
             metadata = metadata.replace("]", "")
             key, value = metadata.split("=")
+            if not key or not value:
+                raise ValueError(
+                    f"Invalid metadata format for '{connection}'"
+                    "(expected format: 'key=value')"
+                )
             if key == "max_link_capacity":
-                if int(value) < 1:
+                try:
+                    m = int(value)
+                except ValueError:
+                    raise ValueError(
+                        f"Invalid format for 'max_link_capacity': "
+                        f"'{value}' is not an integer")
+                if m < 1:
                     raise ValueError(
                         "'max_link_capacity' must be superior to 0")
-                max_link_capacity = int(value)
+                max_link_capacity = m
                 self.connections.append(
                     Connection(hub_a, hub_b, max_link_capacity))
             else:
@@ -159,7 +170,7 @@ class Parser:
     def parse(self, file_name: str) -> None:
         """
         Parse the input file.
-        
+
         Args:
             file_name (str): The name of the input file to parse.
         """
@@ -173,6 +184,10 @@ class Parser:
                         continue
                     prefix, content = [c.strip() for c in cutted_line]
                     if prefix == "nb_drones":
+                        if not content:
+                            raise ValueError(
+                                "'nb_drones' cannot be empty"
+                            )
                         try:
                             nb = int(content)
                         except ValueError:
@@ -201,7 +216,7 @@ class Parser:
     def create_map(self) -> Map:
         """
         Create a map from the parsed data.
-        
+
         Returns:
             Map: A Map object.
         """

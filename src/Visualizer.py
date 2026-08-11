@@ -39,7 +39,7 @@ class Visualizer(arcade.Window):
     def __init__(self, simulation: Simulation) -> None:
         """
         Initializes the visualizer.
-        
+
         Args:
             simulation (Simulation): The simulation to visualize.
         """
@@ -74,7 +74,7 @@ class Visualizer(arcade.Window):
         Args:
             x (float): The x-coordinate in logical space.
             y (float): The y-coordinate in logical space.
-        
+
         Returns:
             tuple[float, float]: The corresponding pixel coordinates.
         """
@@ -93,7 +93,7 @@ class Visualizer(arcade.Window):
                 if output and "start" not in output:
                     self.turn_output.append(output)
                     self.sim.output += output + " "
-            self.sim.output += "\n"
+            self.sim.output += "\n" if self.turn_output else ""
             self.sim.turn_counter += 1
         else:
             self.sim.sim_done = True
@@ -120,7 +120,7 @@ class Visualizer(arcade.Window):
     def on_draw(self) -> None:
         """Draws drones, connections, and zones."""
         self.clear()
-        radius = 35
+        radius = 30
         for connections in self.sim.map.connection_list.values():
             for connection in connections:
                 s_x, s_y = self.get_pixel_position(
@@ -129,6 +129,13 @@ class Visualizer(arcade.Window):
                     connection.hub_b.x, connection.hub_b.y)
                 color = arcade.color.GRAY
                 arcade.draw_line(s_x, s_y, e_x, e_y, color, 4)
+                arcade.draw_text(
+                    f"{len(connection.current_drones)}/"
+                    f"{connection.max_link_capacity}",
+                    (s_x + e_x) / 2, (s_y + e_y) / 2 + 40,
+                    arcade.color.GRAY, 10,
+                    anchor_x='center', anchor_y='center'
+                )
 
         for zone in self.sim.map.zones:
             x, y = self.get_pixel_position(zone.x, zone.y)
@@ -156,27 +163,25 @@ class Visualizer(arcade.Window):
                     shift_y = math.sin(angle) * radius
                     x += shift_x
                     y += shift_y
-                arcade.draw_texture_rect(
-                    drone.img,
-                    arcade.XYWH(
-                        x, y, img.width, img.height).scale(0.4)
-                )
 
             elif drone.current_connection:
-                half_x = (
-                    drone.current_connection.hub_b.x
-                    + drone.current_connection.hub_a.x) / 2
-                half_y = (
-                    drone.current_connection.hub_a.y
-                    + drone.current_connection.hub_b.y) / 2
-                x, y = self.get_pixel_position(half_x, half_y)
-                img = drone.img
-                arcade.draw_texture_rect(
-                    img,
-                    arcade.XYWH(
-                        x, y, img.width, img.height).scale(0.4)
-                )
+                drones_ongoing = drone.current_connection.current_drones
+                total = len(drones_ongoing)
+                index = drones_ongoing.index(drone)
+                ratio = (index + 1) / (total + 1)
 
+                hub_a = drone.current_connection.hub_a
+                hub_b = drone.current_connection.hub_b
+                logic_x = hub_a.x + (hub_b.x - hub_a.x) * ratio
+                logic_y = hub_a.y + (hub_b.y - hub_a.y) * ratio
+
+                x, y = self.get_pixel_position(logic_x, logic_y)
+                img = drone.img
+
+            arcade.draw_texture_rect(
+                img,
+                arcade.XYWH(x, y, img.width, img.height).scale(0.4)
+            )
             arcade.draw_circle_filled(
                             x, y - 40, radius // 2.5,
                             arcade.color.BEIGE
@@ -197,8 +202,8 @@ class Visualizer(arcade.Window):
             count = 8
             lines = []
             for i in range(0, len(self.turn_output), count):
-                morceau = self.turn_output[i: i + count]
-                lines.append("  ".join(morceau))
+                part = self.turn_output[i: i + count]
+                lines.append("  ".join(part))
             start = 25 + (len(lines) * 20)
             current = start
             for ligne in lines:

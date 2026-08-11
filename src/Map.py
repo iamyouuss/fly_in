@@ -57,7 +57,7 @@ class Drone:
     def format_output(self) -> str:
         """
         Formats the output for the drone.
-        
+
         Returns:
             str: The formatted output for the drone.
         """
@@ -106,10 +106,11 @@ class Map:
                            ) -> dict[str, list[Connection]]:
         """
         Builds the connection list for each zone.
-        
+
         Args:
-            connections (list[Connection]): The list of connections to build the list from.
-        
+            connections (list[Connection]):
+            The list of connections to build the list from.
+
         Returns:
             dict[str, list[Connection]]: The connection list for each zone.
         """
