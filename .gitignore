@@ -1,2 +1,5 @@
 .mypy_cache
 src/__pycache__
+uv.lock
+output.txt
+.venv
