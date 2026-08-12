@@ -9,12 +9,15 @@ def main() -> None:
     parser = Parser()
     parser.parse(sys.argv[1])
     map_zone = parser.create_map()
-    simulation = Simulation(map_zone)
-    visualizer = Visualizer(simulation)
-    visualizer.run()
-    with open("output.txt", "w") as f:
-        f.write(simulation.output)
-        print(simulation.output)
+    try:
+        simulation = Simulation(map_zone)
+        visualizer = Visualizer(simulation)
+        visualizer.run()
+        with open("output.txt", "w") as f:
+            f.write(simulation.output)
+            print(simulation.output)
+    except ValueError as e:
+        print(f"[Error] Something went wrong while running simulation: {e}")
 
 
 if __name__ == "__main__":

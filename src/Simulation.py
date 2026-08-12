@@ -125,7 +125,10 @@ class Simulation:
             self.traffic_load[hub] = 0
 
         for drone in self.drones:
-            drone.path = self.build_path()
+            path = self.build_path()
+            if not path:
+                raise ValueError("Could not find path")
+            drone.path = path
             for zone in drone.path:
                 if zone != self.map.start and zone != self.map.end:
                     self.traffic_load[zone] += 1

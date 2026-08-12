@@ -8,12 +8,12 @@ debug:
 	uv run python3 -m pdb main.py $(ARGS)
 
 lint:
-	uv run flake8 src/
-	uv run mypy src/ 
+	uv run flake8 src/ main.py
+	uv run mypy src/ main.py
 
 lint-strict:
-	uv run flake8 src/
-	uv run mypy --strict src/
+	uv run flake8 src/ main.py
+	uv run mypy --strict src/ main.py
 clean:
 	rm -rf .mypy_cache
 	rm -rf `find . -type d -name "__pycache__"`

@@ -177,6 +177,7 @@ class Parser:
         try:
             with open(file_name, "r") as f:
                 for i, line in enumerate(f, start=1):
+                    line = line.split("#")[0]
                     if line.startswith("#") or not line:
                         continue
                     cutted_line = line.split(": ")
