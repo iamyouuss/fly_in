@@ -26,10 +26,9 @@ class Simulation:
                 continue
             if drone.turns_in_transit > 0:
                 drone.turns_in_transit -= 1
-                continue
 
+            destination = drone.path[0]
             if drone.current_connection and drone.turns_in_transit == 0:
-                destination = drone.path[0]
                 drone.current_connection.current_drones.remove(drone)
                 drone.current_connection = None
                 drone.current_zone = destination
@@ -40,20 +39,25 @@ class Simulation:
                 continue
 
             if not drone.current_connection and drone.path:
-                destination = drone.path[0]
                 assert drone.current_zone is not None
                 connection = self.map.get_connection(
                     drone.current_zone, destination)
                 assert connection is not None
-                if len(destination.current_drones) < destination.max_drones:
-                    if (destination.zone_type == Zone_Type.RESTRICTED
-                       and len(connection.current_drones
-                               ) < connection.max_link_capacity):
-                        drone.current_zone.current_drones.remove(drone)
-                        drone.current_zone = None
-                        drone.current_connection = connection
-                        connection.current_drones.append(drone)
-                        drone.turns_in_transit = 1
+                arriving = sum(1 for d in self.drones
+                               if d.current_connection and d.path
+                               and d.path[0] == destination)
+                total = len(destination.current_drones) + arriving
+                if total < destination.max_drones:
+                    if destination.zone_type == Zone_Type.RESTRICTED:
+                        if len(connection.current_drones
+                               ) < connection.max_link_capacity:
+                            drone.current_zone.current_drones.remove(drone)
+                            drone.current_zone = None
+                            drone.current_connection = connection
+                            connection.current_drones.append(drone)
+                            drone.turns_in_transit = 1
+                        else:
+                            pass
                     else:
                         drone.current_zone.current_drones.remove(drone)
                         drone.current_zone = destination
