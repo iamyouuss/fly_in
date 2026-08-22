@@ -4,8 +4,8 @@ import arcade
 from src.Map import Zone_Type
 from .Simulation import Simulation
 
-SCREEN_WIDTH = 2400
-SCREEN_HEIGHT = 1020
+SCREEN_WIDTH = 2000
+SCREEN_HEIGHT = 920
 SCREEN_TITLE = "Fly-In Simulation"
 MARGIN = 150
 PALETTE = {

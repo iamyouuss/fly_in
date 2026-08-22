@@ -1,0 +1,55 @@
+# =================================================================
+# ULTIMATE TEST : The Cross-Stitch (Le Chassé-Croisé)
+# Focus : Inversion de trafic, Deadlocks centraux, Double sortie
+# =================================================================
+nb_drones: 20
+
+start_hub: start 0 4 [color=green max_drones=20]
+
+# --- 1. LES DEUX SORTIES ---
+hub: north_path 2 6 [color=blue max_drones=5]
+hub: south_path 2 2 [color=blue max_drones=5]
+
+# --- 2. LES BYPASSES (Vont saturer les sorties finales) ---
+hub: bypass_north 5 8 [color=cyan max_drones=5]
+hub: bypass_south 5 0 [color=cyan max_drones=5]
+
+# --- 3. LE PONT CENTRAL (Le piège à Deadlock) ---
+hub: bridge_N 5 5 [color=orange max_drones=1]
+hub: bridge_S 5 3 [color=orange max_drones=1]
+
+# --- 4. LES GOULOTS FINAUX ---
+hub: exit_N 8 6 [zone=restricted color=red max_drones=1]
+hub: exit_S 8 2 [zone=restricted color=red max_drones=1]
+
+end_hub: goal 11 4 [color=green max_drones=20]
+
+
+# =================================================================
+# CONNECTIONS
+# =================================================================
+
+# La double sortie demandée
+connection: start-north_path
+connection: start-south_path
+
+# Séparation des flux (Bypass extérieurs vs Pont central)
+connection: north_path-bypass_north
+connection: north_path-bridge_N
+
+connection: south_path-bypass_south
+connection: south_path-bridge_S
+
+# LE PONT DE LA MORT (Capacité 1 : si N et S se croisent, c'est fini)
+connection: bridge_N-bridge_S [max_link_capacity=1]
+
+# Reconnexion vers les goulots d'étranglement
+connection: bypass_north-exit_N
+connection: bridge_N-exit_N
+
+connection: bypass_south-exit_S
+connection: bridge_S-exit_S
+
+# L'arrivée finale
+connection: exit_N-goal
+connection: exit_S-goal

@@ -19,8 +19,8 @@ class Simulation:
             self.drones.append(drone)
             self.map.start.current_drones.append(drone)
 
-    def play_turn(self) -> None:
-        """Plays a single turn of the simulation."""
+    """ def play_turn(self) -> None:
+        Plays a single turn of the simulation.
         for drone in self.drones:
             if drone.is_delivered:
                 continue
@@ -65,6 +65,76 @@ class Simulation:
                         drone.path.remove(destination)
                         if destination == self.map.end:
                             drone.is_delivered = True
+ """
+
+    def play_turn(self) -> None:
+        """Plays a single turn of the simulation."""
+        active_drones = [d for d in self.drones if not d.is_delivered]
+        has_moved_this_turn = set()
+
+        for drone in active_drones:
+            if drone.turns_in_transit > 0:
+                drone.turns_in_transit -= 1
+            if drone.current_connection and drone.turns_in_transit == 0:
+                destination = drone.path[0]
+                drone.current_connection.current_drones.remove(drone)
+                drone.current_connection = None
+                drone.current_zone = destination
+                destination.current_drones.append(drone)
+                drone.path.remove(destination)
+                has_moved_this_turn.add(drone)
+                if destination == self.map.end:
+                    drone.is_delivered = True
+
+        link_crossings = {}
+        drones_ready = [d for d in active_drones
+                        if d not in has_moved_this_turn
+                        and not d.current_connection and d.path]
+        drones_ready.sort(key=lambda d: len(d.path))
+        keep_trying = True
+
+        while keep_trying:
+            keep_trying = False
+            for drone in drones_ready:
+                if drone in has_moved_this_turn:
+                    continue
+                origin = drone.current_zone
+                destination = drone.path[0]
+                connection = self.map.get_connection(origin, destination)
+                assert origin is not None and connection is not None
+
+                arriving = sum(1 for d in self.drones
+                               if d.current_connection and d.path
+                               and d.path[0] == destination)
+                zone_has_room = (len(destination.current_drones) + arriving
+                                 < destination.max_drones)
+
+                if destination.zone_type == Zone_Type.RESTRICTED:
+                    route_has_room = (len(connection.current_drones)
+                                      < connection.max_link_capacity)
+                else:
+                    used_this_turn = link_crossings.get(connection, 0)
+                    route_has_room = (len(connection.current_drones)
+                                      + used_this_turn
+                                      < connection.max_link_capacity)
+
+                if zone_has_room and route_has_room:
+                    origin.current_drones.remove(drone)
+                    if destination.zone_type == Zone_Type.RESTRICTED:
+                        drone.current_zone = None
+                        drone.current_connection = connection
+                        connection.current_drones.append(drone)
+                        drone.turns_in_transit = 1
+                    else:
+                        drone.current_zone = destination
+                        destination.current_drones.append(drone)
+                        drone.path.remove(destination)
+                        link_crossings[connection] = (
+                            link_crossings.get(connection, 0) + 1)
+                        if destination == self.map.end:
+                            drone.is_delivered = True
+                    has_moved_this_turn.add(drone)
+                    keep_trying = True
 
     def get_final_path(self, path: dict[Zone, Zone]) -> list[Zone]:
         """

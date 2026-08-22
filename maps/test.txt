@@ -1,0 +1,70 @@
+# =================================================================
+# STRESS TEST LEVEL : The Gauntlet (Le Parcours du Combattant)
+# Focus: Deadlocks, Mixed Capacities, Restricted Swamps & Bottlenecks
+# =================================================================
+nb_drones: 15
+
+# --- 1. THE START ---
+start_hub: start 0 4 [color=green max_drones=15]
+hub: plaza1 2 3 [color=blue max_drones=15]
+hub: plaza2 2 5 [color=blue max_drones=15]
+
+# --- 2. THE DEADLOCK TRIANGLE (Chassé-Croisé Trap) ---
+# Capacités de 1 avec des liens croisés pour forcer l'Étape 3
+hub: trap_top 4 6 [color=orange max_drones=1]
+hub: trap_bot 4 2 [color=orange max_drones=1]
+hub: trap_mid 5 4 [color=orange max_drones=1]
+
+# --- 3. THE RESTRICTED SWAMP (Time & Capacity Trap) ---
+# Zones restreintes à capacité 2, mais routes à capacité 1 (Forcera l'attente)
+hub: swamp1 7 6 [zone=restricted color=red max_drones=2]
+hub: swamp2 9 6 [zone=restricted color=red max_drones=2]
+
+# --- 4. THE PRIORITY HIGHWAY (Overflow Trap) ---
+# Très attractif, mais mène droit dans un mur
+hub: highway1 7 2 [zone=priority color=cyan max_drones=4]
+hub: highway2 9 2 [zone=priority color=cyan max_drones=4]
+
+# --- 5. THE NEEDLE (Ultimate Bottleneck) ---
+hub: needle 11 4 [color=yellow max_drones=1]
+end_hub: goal 13 4 [color=green max_drones=15]
+
+
+# =================================================================
+# CONNECTIONS (Les routes)
+# =================================================================
+
+# Départ sécurisé
+connection: start-plaza1
+connection: start-plaza2
+connection: plaza1-trap_top
+connection: plaza2-trap_top
+connection: plaza1-trap_bot
+connection: plaza2-trap_bot
+
+# Le Triangle de la Mort (Max Link = 1)
+# Les pénalités de trafic forceront les drones à tourner en rond ici.
+connection: trap_top-trap_bot [max_link_capacity=1]
+connection: trap_top-trap_mid [max_link_capacity=1]
+connection: trap_bot-trap_mid [max_link_capacity=1]
+
+# Dispersion vers les chemins
+connection: trap_top-swamp1 [max_link_capacity=1]
+connection: trap_mid-swamp1 [max_link_capacity=1]
+connection: trap_bot-highway1 [max_link_capacity=2]
+connection: trap_mid-highway1 [max_link_capacity=2]
+
+# Chemin du haut (Restreint : Transit = 1, Capacité Route = 1)
+connection: swamp1-swamp2 [max_link_capacity=1]
+connection: swamp2-needle [max_link_capacity=1]
+
+# Chemin du bas (Prioritaire : Instantané mais embouteillages violents)
+connection: highway1-highway2 [max_link_capacity=4]
+connection: highway2-needle [max_link_capacity=2]
+
+# Les ponts de la discorde (Permet des détours absurdes si tout est bouché)
+connection: swamp1-highway2 [max_link_capacity=1]
+connection: highway1-swamp2 [max_link_capacity=1]
+
+# L'entonnoir final (Le goulot absolu)
+connection: needle-goal [max_link_capacity=1]
